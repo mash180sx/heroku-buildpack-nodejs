@@ -12,7 +12,7 @@ unset GIT_DIR
 
 # config
 SCONS_VERSION="1.2.0"
-S3_BUCKET="heroku-buildpack-nodejs"
+S3_BUCKET="hakobera-heroku-node"
 
 # parse and derive params
 BUILD_DIR=$1
@@ -108,7 +108,7 @@ declare -A engine_versions
 declare -A engine_defaults
 declare -A engine_requests
 
-engine_defaults["node"]="0.4.7"
+engine_defaults["node"]="0.6.10"
 engine_defaults["npm"]="1.0.94"
 
 engine_versions["node"]=$(manifest_versions "nodejs")

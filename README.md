@@ -12,20 +12,16 @@ Example usage:
     $ ls
     Procfile  package.json  web.js
 
-    $ heroku create --stack cedar --buildpack http://github.com/heroku/heroku-buildpack-nodejs.git
+    $ heroku create --stack cedar --buildpack 'http://github.com/hakobera/heroku-buildpack-nodejs.git#versions'
 
     $ git push heroku master
     ...
     -----> Heroku receiving push
     -----> Fetching custom buildpack
     -----> Node.js app detected
-    -----> Vendoring node 0.4.7
-    -----> Installing dependencies with npm 1.0.8
-           express@2.1.0 ./node_modules/express
-           ├── mime@1.2.2
-           ├── qs@0.3.1
-           └── connect@1.6.2
-           Dependencies installed
+    -----> Vendoring node 0.6.10
+    -----> installing dependencies with npm 1.1.0-3
+      ...
 
 The buildpack will detect your app as Node.js if it has the file `package.json` in the root.  It will use NPM to install your dependencies, and vendors a version of the Node.js runtime into your slug.  The `node_modules` directory will be cached between builds to allow for faster NPM install time.
 
@@ -44,8 +40,8 @@ You can specify the versions of Node.js and npm your application requires using 
 
 To list the available versions of Node.js and npm, see these manifests:
 
-http://heroku-buildpack-nodejs.s3.amazonaws.com/manifest.nodejs
-http://heroku-buildpack-nodejs.s3.amazonaws.com/manifest.npm
+- [Node.js](http://hakobera-heroku-node.s3.amazonaws.com/manifest.nodejs)
+- [NPMm](http://hakobera-heroku-node.s3.amazonaws.com/manifest.npm)
 
 Hacking
 -------
@@ -54,19 +50,19 @@ To use this buildpack, fork it on Github.  Push up changes to your fork, then cr
 
 To change the vendored binaries for Node.js, NPM, and SCons, use the helper scripts in the `support/` subdirectory.  You'll need an S3-enabled AWS account and a bucket to store your binaries in.
 
-For example, you can change the default version of Node.js to v0.6.7.
+For example, you can change the default version of Node.js to v0.6.10.
 
 First you'll need to build a Heroku-compatible version of Node.js:
 
     $ export AWS_ID=xxx AWS_SECRET=yyy S3_BUCKET=zzz
     $ s3 create $S3_BUCKET
-    $ support/package_nodejs 0.6.7
+    $ support/package_nodejs 0.6.10
 
 Open `bin/compile` in your editor, and change the following lines:
 
-    DEFAULT_NODE_VERSION="0.6.7"
+    DEFAULT_NODE_VERSION="0.6.10"
     S3_BUCKET=zzz
 
 Commit and push the changes to your buildpack to your Github fork, then push your sample app to Heroku to test.  You should see:
 
-    -----> Vendoring node 0.6.7
+    -----> Vendoring node 0.6.10
