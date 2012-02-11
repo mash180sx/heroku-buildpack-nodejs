@@ -54,8 +54,9 @@ For example, you can change the default version of Node.js to v0.6.10.
 
 First you'll need to build a Heroku-compatible version of Node.js:
 
+    $ gem install aws-sdk
     $ export AWS_ID=xxx AWS_SECRET=yyy S3_BUCKET=zzz
-    $ s3 create $S3_BUCKET
+    $ support/aws/s3 create $S3_BUCKET
     $ support/package_nodejs 0.6.10
 
 Open `bin/compile` in your editor, and change the following lines:

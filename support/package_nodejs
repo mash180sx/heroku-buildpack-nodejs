@@ -43,11 +43,9 @@ cd node-v${node_version}
 vulcan build -v -o $tempdir/node-${node_version}.tgz
 
 # upload nodejs to s3
-$basedir/aws/s3 $S3_BUCKET \
+$basedir/aws/s3 put $S3_BUCKET \
   nodejs-${node_version}.tgz $tempdir/node-${node_version}.tgz
 echo "node-${node_version}.tgz uploaded"
-
-$basedir/manifest nodejs
 
 if [ -e tools/scons ]; then
   pushd tools/scons
@@ -58,7 +56,7 @@ if [ -e tools/scons ]; then
 
 
   # upload scons to s3
-  $basedir/aws/s3 $S3_BUCKET \
+  $basedir/aws/s3 put $S3_BUCKET \
     scons-${scons_version}.tgz $tempdir/scons-${scons_version}.tgz
   echo "scons-${scons_version}.tgz uploaded"
 fi

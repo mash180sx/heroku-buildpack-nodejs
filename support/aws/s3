@@ -1,17 +1,35 @@
 #!/usr/bin/env ruby
 
-require 'aws/s3'
-include AWS::S3
+require 'aws-sdk'
 
-Base.establish_connection!(
-  :access_key_id     => ENV['AWS_ID'],
+def s3_create_bucket(s3, bucket_name)
+  s3.buckets.create(bucket_name)
+end
+
+def s3_put(s3, opts)
+  (bucket_name, path, file_name) = opts
+  bucket = s3.buckets[bucket_name]
+  o = bucket.objects[path]
+  o.write(:file => file_name, :acl => :public_read)
+end
+
+AWS.config({
+  :access_key_id => ENV['AWS_ID'],
   :secret_access_key => ENV['AWS_SECRET']
-)
+})
 
-# アップロード
-S3Object.store(
-  ARGV[1],       # s3 path
-  open(ARGV[2]), # local file path
-  ARGV[0],       # Bucket name
-  'x-amz-acl' => 'public-read'
-)
+s3 = AWS::S3.new
+
+cmd = ARGV[0]
+case cmd
+when 'create'
+  ARGV.shift
+  s3_create_bucket(s3, ARGV[0])
+
+when 'put'
+  ARGV.shift
+  s3_put(s3, ARGV)
+  
+else 
+  raise("Unknown command '#{cmd}'")
+end
