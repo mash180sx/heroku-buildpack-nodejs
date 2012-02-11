@@ -54,7 +54,7 @@ function run_npm() {
 }
 
 function manifest_versions() {
-  curl "http://${S3_BUCKET}.s3.amazonaws.com/manifest.${1}" -s -o - | tr -s '\n' ' '
+  curl "https://raw.github.com/hakobera/heroku-buildpack-nodejs/versions/manifest.${1}" -s -o - | tr -s '\n' ' '
 }
 
 function resolve_version() {
