@@ -18,8 +18,6 @@ S3_BUCKET="hakobera-heroku-node"
 BUILD_DIR=$1
 CACHE_DIR=$2
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
-CACHE_STORE_DIR="$CACHE_DIR/node_modules/$NPM_VERSION"
-CACHE_TARGET_DIR="$BUILD_DIR/node_modules"
 
 function error() {
   echo " !     $*"
@@ -121,9 +119,6 @@ echo "-----> Resolving engine versions"
 NODE_VERSION=$(package_resolve_version "node")
 echo "Using Node.js version: ${NODE_VERSION}" | indent
 
-NPM_VERSION=$(package_resolve_version "npm")
-echo "Using npm version: ${NPM_VERSION}" | indent
-
 # s3 packages
 NODE_PACKAGE="http://${S3_BUCKET}.s3.amazonaws.com/nodejs-${NODE_VERSION}.tgz"
 NPM_PACKAGE="http://${S3_BUCKET}.s3.amazonaws.com/npm-${NPM_VERSION}.tgz"
@@ -131,13 +126,19 @@ SCONS_PACKAGE="http://${S3_BUCKET}.s3.amazonaws.com/scons-${SCONS_VERSION}.tgz"
 
 # vendor directories
 VENDORED_NODE="$(mktmpdir node)"
-VENDORED_NPM="$(mktmpdir npm)"
+if [ -e $VENDERED_NODE/bin/npm ]; then
+  VENDORED_NPM="${VENDERED_NODE}/lib/node_modules/npm"
+else
+  VENDORED_NPM="$(mktmpdir npm)"
+fi
 VENDORED_SCONS="$(mktmpdir scons)"
 
 # download and unpack packages
 echo "-----> Fetching Node.js binaries"
 package_download "nodejs" "${NODE_VERSION}" "${VENDORED_NODE}"
-package_download "npm" "${NPM_VERSION}" "${VENDORED_NPM}"
+if [ ! -e ${VENDERED_NODE}/bin/npm ]; then
+  package_download "npm" "${NPM_VERSION}" "${VENDORED_NPM}"
+fi
 package_download "scons" "${SCONS_VERSION}" "${VENDORED_SCONS}"
 
 # vendor node into the slug
@@ -151,6 +152,10 @@ PATH="$VENDORED_SCONS:$VENDORED_NODE/bin:$PATH"
 INCLUDE_PATH="$VENDORED_NODE/include"
 export CPATH="$INCLUDE_PATH"
 export CPPPATH="$INCLUDE_PATH"
+
+NPM_VERSION=`$VENDORED_NODE/bin/node $VENDORED_NPM/cli.js -v`
+CACHE_STORE_DIR="$CACHE_DIR/node_modules/$NPM_VERSION"
+CACHE_TARGET_DIR="$BUILD_DIR/node_modules"
 
 # unpack existing cache
 if [ -d $CACHE_STORE_DIR ]; then
@@ -176,6 +181,7 @@ fi
 
 # install dependencies with npm
 echo "-----> Installing dependencies with npm"
+echo "Using npm version: ${NPM_VERSION}" | indent
 run_npm "install"
 run_npm "rebuild"
 echo "Dependencies installed" | indent
