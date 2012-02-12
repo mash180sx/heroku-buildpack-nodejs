@@ -129,9 +129,11 @@ SCONS_PACKAGE="http://${S3_BUCKET}.s3.amazonaws.com/scons-${SCONS_VERSION}.tgz"
 # vendor directories
 VENDORED_NODE="$(mktmpdir node)"
 if [ -e $VENDERED_NODE/bin/npm ]; then
-  VENDORED_NPM="${VENDERED_NODE}/lib/node_modules/npm"
+echo "Use bundled npm"
+VENDORED_NPM="${VENDERED_NODE}/bin/npm"
 else
-  VENDORED_NPM="$(mktmpdir npm)"
+echo "Use vendored npm"
+VENDORED_NPM="$(mktmpdir npm)/cli.js"
 fi
 VENDORED_SCONS="$(mktmpdir scons)"
 
