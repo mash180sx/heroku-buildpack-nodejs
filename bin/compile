@@ -125,28 +125,23 @@ NODE_PACKAGE="http://${S3_BUCKET}.s3.amazonaws.com/nodejs-${NODE_VERSION}.tgz"
 VENDORED_NODE="$(mktmpdir node)"
 package_download "nodejs" "${NODE_VERSION}" "${VENDORED_NODE}"
 
-# NPM and others setup
+# NPM
 NPM_VERSION=$(package_resolve_version "npm")
-
-# s3 packages
 NPM_PACKAGE="http://${S3_BUCKET}.s3.amazonaws.com/npm-${NPM_VERSION}.tgz"
-SCONS_PACKAGE="http://${S3_BUCKET}.s3.amazonaws.com/scons-${SCONS_VERSION}.tgz"
 
-# vendor directories
 if [ -e ${VENDORED_NODE}/bin/npm ]; then
 echo "-----> Use bundled npm"
-VENDORED_NPM="${VENDERED_NODE}"
+VENDORED_NPM="${VENDORED_NODE}"
 else
 echo "-----> Use vendored npm"
 VENDORED_NPM="$(mktmpdir npm)"
+echo "-----> Fetching npm binaries"
+package_download "npm" "${NPM_VERSION}" "${VENDORED_NPM}"
 fi
-VENDORED_SCONS="$(mktmpdir scons)"
 
-# download and unpack packages
-if [ ! -e ${VENDERED_NODE}/bin/npm ]; then
-  echo "-----> Fetching npm binaries"
-  package_download "npm" "${NPM_VERSION}" "${VENDORED_NPM}"
-fi
+# scons
+SCONS_PACKAGE="http://${S3_BUCKET}.s3.amazonaws.com/scons-${SCONS_VERSION}.tgz"
+VENDORED_SCONS="$(mktmpdir scons)"
 package_download "scons" "${SCONS_VERSION}" "${VENDORED_SCONS}"
 
 # vendor node into the slug
@@ -161,7 +156,7 @@ INCLUDE_PATH="$VENDORED_NODE/include"
 export CPATH="$INCLUDE_PATH"
 export CPPPATH="$INCLUDE_PATH"
 
-NPM_VERSION=`$VENDORED_NODE/bin/node $VENDORED_NPM/cli.js -v`
+NPM_VERSION=`$VENDORED_NODE/bin/node $VENDORED_NPM/bin/npm -v`
 CACHE_STORE_DIR="$CACHE_DIR/node_modules/$NPM_VERSION"
 CACHE_TARGET_DIR="$BUILD_DIR/node_modules"
 
