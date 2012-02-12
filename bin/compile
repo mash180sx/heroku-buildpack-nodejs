@@ -43,7 +43,7 @@ function run_npm() {
   command="$1"
 
   cd $BUILD_DIR
-  HOME="$BUILD_DIR" $VENDORED_NODE/bin/node $VENDORED_NPM/cli.js $command 2>&1 | indent
+  HOME="$BUILD_DIR" $VENDORED_NODE/bin/node $VENDORED_NPM/bin/npm $command 2>&1 | indent
 
   if [ "${PIPESTATUS[*]}" != "0 0" ]; then
     echo " !     Failed to $command dependencies with npm"
@@ -115,32 +115,36 @@ engine_requests["node"]=$(package_engine_version "node")
 engine_versions["npm"]=$(manifest_versions "npm")
 engine_requests["npm"]=$(package_engine_version "npm")
 
+# Node.js setup
 echo "-----> Resolving engine versions"
 NODE_VERSION=$(package_resolve_version "node")
 echo "Using Node.js version: ${NODE_VERSION}" | indent
 
+echo "-----> Fetching Node.js binaries"
+NODE_PACKAGE="http://${S3_BUCKET}.s3.amazonaws.com/nodejs-${NODE_VERSION}.tgz"
+VENDORED_NODE="$(mktmpdir node)"
+package_download "nodejs" "${NODE_VERSION}" "${VENDORED_NODE}"
+
+# NPM and others setup
 NPM_VERSION=$(package_resolve_version "npm")
 
 # s3 packages
-NODE_PACKAGE="http://${S3_BUCKET}.s3.amazonaws.com/nodejs-${NODE_VERSION}.tgz"
 NPM_PACKAGE="http://${S3_BUCKET}.s3.amazonaws.com/npm-${NPM_VERSION}.tgz"
 SCONS_PACKAGE="http://${S3_BUCKET}.s3.amazonaws.com/scons-${SCONS_VERSION}.tgz"
 
 # vendor directories
-VENDORED_NODE="$(mktmpdir node)"
-if [ -e $VENDERED_NODE/bin/npm ]; then
-echo "Use bundled npm"
-VENDORED_NPM="${VENDERED_NODE}/bin/npm"
+if [ -e ${VENDORED_NODE}/bin/npm ]; then
+echo "-----> Use bundled npm"
+VENDORED_NPM="${VENDERED_NODE}"
 else
-echo "Use vendored npm"
-VENDORED_NPM="$(mktmpdir npm)/cli.js"
+echo "-----> Use vendored npm"
+VENDORED_NPM="$(mktmpdir npm)"
 fi
 VENDORED_SCONS="$(mktmpdir scons)"
 
 # download and unpack packages
-echo "-----> Fetching Node.js binaries"
-package_download "nodejs" "${NODE_VERSION}" "${VENDORED_NODE}"
 if [ ! -e ${VENDERED_NODE}/bin/npm ]; then
+  echo "-----> Fetching npm binaries"
   package_download "npm" "${NPM_VERSION}" "${VENDORED_NPM}"
 fi
 package_download "scons" "${SCONS_VERSION}" "${VENDORED_SCONS}"
