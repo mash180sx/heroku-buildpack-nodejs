@@ -12,7 +12,7 @@ Example usage:
     $ ls
     Procfile  package.json  web.js
 
-    $ heroku create --stack cedar --buildpack 'http://github.com/hakobera/heroku-buildpack-nodejs.git#versions'
+    $ heroku create --stack cedar --buildpack 'https://github.com/hakobera/heroku-buildpack-nodejs.git#versions'
 
     $ git push heroku master
     ...
